@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="linkedin_images/action_shot_bear.jpg" alt="PredatorAlert Logo" width="100%">
+  <img src="linkedin_images/logo.png" alt="PredatorAlert Logo" width="200">
   <h1>🚨 PredatorAlert Edge AI</h1>
   <p><strong>Real-Time Wildlife Intrusion Detection System for Edge Devices</strong></p>
   
@@ -25,9 +25,10 @@ When a dangerous predator is detected, the system immediately triggers a dual-pa
 
 ## 3. ✨ Features
 - **Real-Time AI Processing:** Runs edge inference using ONNX-optimized YOLO models directly on the Pi 5.
-- **Priority Classification:** Differentiates between benign animals (e.g., cows, sheep) and critical threats (e.g., tigers, bears, wild boars).
-- **Dual-Path API Architecture:** Sends a lightweight instant alert milliseconds after detection, followed asynchronously by the image payload.
-- **Offline Payload Caching:** Uses a local SQLite database to cache failed alerts during internet outages and auto-syncs when the connection is restored.
+- **Priority Classification:** Differentiates between benign animals (e.g., cows, sheep) and critical threats.
+- **Dual-Path API Architecture:** Sends a lightweight instant alert milliseconds after detection.
+- **Offline Payload Caching:** Uses a local SQLite database to cache failed alerts during internet outages.
+- **Mobile Companion App:** Includes a fully-featured Flutter mobile application for push notifications and live dashboard monitoring.
 - **Live Video Streaming:** Built-in Flask MJPEG server for remote live-feed monitoring.
 - **Automated Service Recovery:** Managed via systemd with auto-restart, CPU quota limits, and memory management.
 - **Robust Hardware Integration:** Seamlessly works with the Raspberry Pi Camera Module 3 using double-buffering to prevent frame dropping.
@@ -134,7 +135,8 @@ PredatorAlertor/
 │
 ├── models/                    # Holds .pt or .onnx YOLO models (Not tracked by Git)
 ├── logs/                      # Runtime system logs
-├── linkedin_images/           # Generated screenshots and diagrams
+├── linkedin_images/           # Generated screenshots and logos
+├── flutter_app/               # Flutter cross-platform mobile application
 │
 ├── main.py                    # Application Entry Point & Flask Server
 ├── camera.py                  # Picamera2 / OpenCV hardware wrapper

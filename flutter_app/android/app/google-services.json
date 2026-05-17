@@ -1,0 +1,47 @@
+{
+    "project_info": {
+        "project_number": "798005677284",
+        "project_id": "predatoralert-system",
+        "storage_bucket": "predatoralert-system.firebasestorage.app"
+    },
+    "client": [
+        {
+            "client_info": {
+                "mobilesdk_app_id": "1:798005677284:android:0dcbfa827d1dbf710c30f1",
+                "android_client_info": {
+                    "package_name": "com.predatoralert.app"
+                }
+            },
+            "oauth_client": [
+                {
+                    "client_id": "798005677284-lrmbg2tikml3eqf18g204gk40npfffb8.apps.googleusercontent.com",
+                    "client_type": 1,
+                    "android_info": {
+                        "package_name": "com.predatoralert.app",
+                        "certificate_hash": "c37634d511906e4b21e899411c974d9b795c22c7"
+                    }
+                },
+                {
+                    "client_id": "798005677284-b00r0brsrv0pul34uamlcao0n8g0hkuk.apps.googleusercontent.com",
+                    "client_type": 3
+                }
+            ],
+            "api_key": [
+                {
+                    "current_key": "AIzaSyDW3bNBldVn6909ZaY5G-3orKxbMIdD-Mo"
+                }
+            ],
+            "services": {
+                "appinvite_service": {
+                    "other_platform_oauth_client": [
+                        {
+                            "client_id": "798005677284-b00r0brsrv0pul34uamlcao0n8g0hkuk.apps.googleusercontent.com",
+                            "client_type": 3
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "configuration_version": "1"
+}
