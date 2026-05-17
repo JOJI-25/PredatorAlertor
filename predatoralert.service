@@ -1,0 +1,27 @@
+[Unit]
+Description=PredatorAlert Wildlife Detection Service
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/predatoralert
+Environment=PATH=/home/pi/predatoralert/venv/bin:/usr/bin:/bin
+EnvironmentFile=/home/pi/predatoralert/.env
+ExecStart=/home/pi/predatoralert/venv/bin/python main.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Resource limits
+MemoryMax=2G
+CPUQuota=80%
+
+[Install]
+WantedBy=multi-user.target
