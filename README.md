@@ -1,340 +1,389 @@
 <div align="center">
   <img src="linkedin_images/logo.png" alt="PredatorAlert Logo" width="200">
-  <h1>🚨 PredatorAlert Edge AI</h1>
-  <p><strong>Real-Time Wildlife Intrusion Detection System for Edge Devices</strong></p>
+  <h1>🚨 PredatorAlert Edge AI System</h1>
+  <p><strong>Real-Time Wildlife Intrusion Detection System & Mobile Alert Platform</strong></p>
   
   [![Python](https://img.shields.io/badge/Python-3.12-blue?style=for-the-badge&logo=python)](#)
   [![Raspberry Pi](https://img.shields.io/badge/Raspberry%20Pi-5-c51a4a?style=for-the-badge&logo=raspberry-pi)](#)
   [![YOLO](https://img.shields.io/badge/YOLO-v8/v10-yellow?style=for-the-badge)](#)
-  [![Flask](https://img.shields.io/badge/Flask-Web%20Stream-black?style=for-the-badge&logo=flask)](#)
-  [![Twilio](https://img.shields.io/badge/Twilio-SMS%20%26%20Calls-red?style=for-the-badge&logo=twilio)](#)
+  [![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)](#)
+  [![Firebase](https://img.shields.io/badge/firebase-%23039BE5.svg?style=for-the-badge&logo=firebase)](#)
   [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](#)
 </div>
 
 ---
 
-## 1. 📖 Problem Statement
-Human-wildlife conflict is a growing crisis globally. Farmers, rural communities, and forest edge inhabitants constantly face the threat of predator intrusions (tigers, lions, bears), which result in loss of livestock, property damage, and tragic loss of human life. Traditional methods like electrical fences are expensive, often harmful, and lack real-time monitoring capabilities. A proactive, highly accurate, and immediate early-warning system is critically needed.
+## 1. 📖 Project Overview
+**PredatorAlert** is an end-to-end, real-time wildlife monitoring and early-warning ecosystem. It bridges the gap between **embedded edge computing, artificial intelligence, and mobile cloud integration** to protect rural communities and livestock from dangerous animal intrusions. By running heavily optimized computer vision models directly on edge hardware, the system eliminates cloud-inference latency and ensures instant notifications when human life or property is at risk.
 
-## 2. 💡 Solution Overview
-**PredatorAlert** is an intelligent, edge-computing wildlife detection system. Designed to run entirely on a low-cost Raspberry Pi 5 without requiring constant cloud inference, the system uses a custom-trained **YOLO (You Only Look Once)** computer vision model to identify and classify animals in real-time. 
+## 2. ⚠️ Problem Statement
+Human-wildlife conflict is an escalating global crisis. As human settlements encroach on natural habitats, communities—especially farmers and forest edge inhabitants—face constant threats from predators like tigers, bears, and wolves. 
+Traditional monitoring systems rely on motion-sensor traps that:
+- Lack real-time alerting capabilities.
+- Trigger false positives on benign movement (wind, safe animals).
+- Require human review of SD cards.
+An intelligent, proactive, and immediate early-warning system is critically needed to save lives.
 
-When a dangerous predator is detected, the system immediately triggers a dual-path alert: 
-1. **Instant Twilio SMS & Phone Call** to stakeholders.
-2. **API Payload** with the captured frame to a central backend dashboard.
+## 3. 💡 Solution Overview
+PredatorAlert solves this by pushing the intelligence to the edge. The system utilizes a custom-trained **YOLO (You Only Look Once)** computer vision model deployed on a Raspberry Pi 5. It continuously processes live video feeds locally, categorizes detected animals into "predator" or "safe" priority tiers, and instantly triggers a dual-path notification system. 
 
-## 3. ✨ Features
-- **Real-Time AI Processing:** Runs edge inference using ONNX-optimized YOLO models directly on the Pi 5.
-- **Priority Classification:** Differentiates between benign animals (e.g., cows, sheep) and critical threats.
-- **Dual-Path API Architecture:** Sends a lightweight instant alert milliseconds after detection.
-- **Offline Payload Caching:** Uses a local SQLite database to cache failed alerts during internet outages.
-- **Mobile Companion App:** Includes a fully-featured Flutter mobile application for push notifications and live dashboard monitoring.
-- **Live Video Streaming:** Built-in Flask MJPEG server for remote live-feed monitoring.
-- **Automated Service Recovery:** Managed via systemd with auto-restart, CPU quota limits, and memory management.
-- **Robust Hardware Integration:** Seamlessly works with the Raspberry Pi Camera Module 3 using double-buffering to prevent frame dropping.
+Alerts are delivered via **Twilio SMS/Calls** for immediate off-grid awareness, and simultaneously pushed through a robust backend to the **PredatorAlert Flutter Mobile App**, which provides a live dashboard, analytics, and high-priority push notifications to stakeholders.
+
+## 4. ✨ Key Features
+- **Real-Time Edge AI:** ONNX-optimized YOLO model inference running locally at high speed on the Pi 5.
+- **Intelligent Threat Prioritization:** Automatically differentiates between safe animals (cows, sheep) and critical predators.
+- **Offline Payload Caching:** Edge-resilience via SQLite. Failed alerts during network drops are cached and auto-synced upon reconnection.
+- **Dual-Path Instant Alerts:** Fires a lightweight, text-only REST payload milliseconds after detection, following up asynchronously with the heavy image payload.
+- **Twilio Voice & SMS Integration:** Automated emergency phone calls using text-to-speech TwiML and SMS messaging with configurable cooldowns.
+- **Full-Stack Mobile App:** Cross-platform Flutter application utilizing Riverpod and Firebase for live streaming, push notifications, and analytic charts.
+- **Live Video Streaming:** Built-in Flask MJPEG server for remote live-feed verification.
+- **Automated Service Management:** Deployed as a robust `systemd` daemon with CPU quotas, memory limits, and auto-restart capabilities.
 
 ---
 
-## 4. 🏛️ System Architecture
+# 🏛️ SYSTEM ARCHITECTURE
 
-PredatorAlert is divided into an Edge Node (the Pi) and the Cloud Backend.
+The ecosystem is built on a distributed architecture separating the heavy ML workload (Edge) from the user interface (Mobile) via a scalable event-driven Cloud Backend.
 
+### 1. High-Level Architecture Diagram
 ```mermaid
 graph TB
-    subgraph "Raspberry Pi 5 (Edge Node)"
-        CAM["📷 Pi Camera Module 3"]
-        CAMERA["camera.py<br/>(Frame Capture)"]
-        DETECTOR["detector.py<br/>(YOLO Inference)"]
-        CLASSIFIER["classifier.py<br/>(Predator/Safe)"]
-        MAIN["main.py<br/>(Controller Loop)"]
-        API["api_client.py<br/>(HTTP Client + SQLite Offline Cache)"]
-        SMS["sms_notifier.py<br/>(Twilio Alerts)"]
-        FLASK["Flask MJPEG Server"]
+    subgraph Edge["Raspberry Pi 5 (Edge Node)"]
+        direction TB
+        CAM[Camera Module 3] --> PI_LOGIC[PredatorAlert Engine]
+        PI_LOGIC <--> ML[ONNX YOLO Model]
+        PI_LOGIC --> STREAM[Flask MJPEG Stream]
     end
 
-    subgraph "Cloud & External"
-        BACKEND["Backend API<br/>(Render/AWS)"]
-        TWILIO["Twilio Communications"]
-        USER["User Phone"]
+    subgraph Cloud["Cloud Infrastructure"]
+        direction TB
+        API[REST API Backend] --> DB[(Firestore DB)]
+        API --> FCM[Firebase Cloud Messaging]
+        TWILIO[Twilio Service]
     end
 
-    CAM --> CAMERA
-    CAMERA --> MAIN
-    MAIN --> DETECTOR
-    DETECTOR --> CLASSIFIER
-    CLASSIFIER --> MAIN
-    MAIN --> API
-    MAIN --> SMS
-    MAIN --> FLASK
-    
-    API --> BACKEND
-    SMS --> TWILIO
-    TWILIO --> USER
-    
-    style CAM fill:#f9f,stroke:#333,stroke-width:2px
-    style DETECTOR fill:#bbf,stroke:#f66,stroke-width:2px,stroke-dasharray: 5 5
-    style API fill:#dfd,stroke:#333,stroke-width:2px
+    subgraph User["User Endpoints"]
+        APP[Flutter Mobile App]
+        SMS[SMS / Voice Calls]
+    end
+
+    PI_LOGIC -- HTTPS POST --> API
+    PI_LOGIC -- API Call --> TWILIO
+    STREAM -. Web Feed .-> APP
+    FCM -- Push Notification --> APP
+    DB -- Real-time Sync --> APP
+    TWILIO --> SMS
 ```
 
----
+### 2. System Component Diagram
+```mermaid
+flowchart LR
+    subgraph Pi["Raspberry Pi Core Modules"]
+        C(camera.py) --> M(main.py)
+        M --> D(detector.py)
+        D --> CL(classifier.py)
+        CL --> M
+        M --> A(api_client.py)
+        M --> S(sms_notifier.py)
+        A <--> SQL[(SQLite Cache)]
+    end
+    
+    subgraph Flutter["Flutter App Architecture"]
+        UI(Presentation Layer) <--> RM(Riverpod State)
+        RM <--> REPO(Data Repositories)
+        REPO <--> FB(Firebase Auth/DB)
+    end
+    
+    A --> FB
+```
 
-## 5. 🔄 Workflow Explanation
+### 3. End-to-End Workflow Diagram
+```mermaid
+sequenceDiagram
+    participant Cam as Pi Camera
+    participant YOLO as Edge AI
+    participant API as Pi API Client
+    participant Backend as Render/Firebase
+    participant App as Flutter App
+    participant Phone as User Phone
 
-The system operates in a continuous, multi-threaded loop:
-1. **Input Acquisition:** The background camera thread continuously captures frames directly to a buffer (preventing I/O blocks).
-2. **AI Inference:** Every 2 seconds, a frame is passed to the YOLO detector to identify objects.
-3. **Decision Logic:** The classifier determines if the detected object is a `predator` or `safe` based on a predefined ruleset.
-4. **Alert Generation:** 
-    - If **Safe**: Enqueued for a background low-priority API update.
-    - If **Predator**: A high-priority thread immediately fires an SMS/Call via Twilio and sends a text-only payload to the backend. The image payload follows sequentially.
-5. **Data Logging/Caching:** If the network is down, the API client caches the payload into a local SQLite database for later sync.
+    Cam->>YOLO: 1. Capture BGR Frame
+    YOLO->>YOLO: 2. Run Inference & Classify
+    alt is Predator
+        YOLO->>API: 3. Trigger High Priority Alert
+        API->>Backend: 4. POST /api/detections (Instant, no image)
+        Backend->>App: 5. FCM Push Notification
+        API->>Phone: 6. Twilio SMS + Voice Call
+        API-)Backend: 7. POST Image Payload (Async)
+    else is Safe Animal
+        YOLO->>API: 3. Queue Low Priority Sync
+        API-)Backend: 4. POST Payload (Background Worker)
+    end
+```
 
-### Workflow Flowchart
+### 4. Data Flow Diagram
+```mermaid
+graph TD
+    A[Raw MIPI CSI Frame] -->|Double Buffer| B[NumPy Array]
+    B -->|Resize 320x320| C[YOLO Tensor]
+    C -->|Inference| D[Bounding Boxes & Classes]
+    D -->|Classification| E[JSON Payload Dict]
+    B -->|JPEG Encode & Base64| F[Base64 Image String]
+    E --> G{Network Online?}
+    F --> G
+    G -->|Yes| H[HTTPS POST to Backend]
+    G -->|No| I[(Local SQLite offline_cache.db)]
+    I -->|Connection Restored| H
+    H --> J[(Firebase Firestore)]
+```
+
+### 5. Detection Pipeline Flowchart
 ```mermaid
 flowchart TD
-    A([Start Detection Cycle]) --> B(Capture Camera Frame)
-    B --> C{Run YOLO Model}
-    C -- "No Detection" --> D([Wait for next cycle])
-    C -- "Detection Found" --> E(Classify Animal)
-    E --> F{Is Predator?}
+    Start([main.py Loop]) --> Cap[camera.capture_frame()]
+    Cap --> Det[detector.detect()]
+    Det --> Valid{Conf > 0.65?}
+    Valid -- No --> Next([Wait 2s])
+    Valid -- Yes --> Class[classifier.classify_batch()]
+    Class --> Map[Map against PREDATOR_ANIMALS]
+    Map --> Risk{Is Predator?}
+    Risk -- Yes --> Red[Draw Red Box]
+    Risk -- No --> Green[Draw Green Box]
+    Red --> Fire[Spawn Instant Alert Thread]
+    Green --> Q[Enqueue to Background Worker]
+    Fire --> Next
+    Q --> Next
+```
+
+### 6. Mobile App Interaction Diagram
+```mermaid
+stateDiagram-v2
+    [*] --> Splash
+    Splash --> AuthGuard
+    AuthGuard --> Login: Unauthenticated
+    AuthGuard --> Dashboard: Authenticated
     
-    F -- "Yes" --> G[Trigger Parallel Threads]
-    G --> H1[Twilio SMS/Call]
-    G --> H2[API Instant Alert]
-    G --> H3[API Image Upload]
+    Login --> GoogleSignIn
+    GoogleSignIn --> Dashboard
     
-    F -- "No" --> I{Confidence > 0.9?}
-    I -- "Yes" --> J[Queue Background API Sync]
-    I -- "No" --> D
+    Dashboard --> LiveStream: Tap Camera Icon
+    Dashboard --> AlertHistory: Tap Alerts
+    Dashboard --> Profile: Tap Settings
     
-    H2 --> K{Network OK?}
-    K -- "No" --> L[(SQLite Offline Cache)]
-    K -- "Yes" --> M(Backend Database)
+    state AlertHistory {
+        List --> DetailView: Tap Alert Card
+        DetailView --> ShowImage
+    }
+    
+    [*] --> NotificationClick: Receive FCM Push
+    NotificationClick --> DetailView
+```
+
+### 7. API Communication Diagram (Edge Reliability)
+```mermaid
+sequenceDiagram
+    participant Main as Detection Thread
+    participant Sender as Background Worker
+    participant DB as SQLite Cache
+    participant API as External Server
+
+    Main->>Sender: Queue Safe Animal Payload
+    loop Every cycle
+        Sender->>API: Try POST /api/detections
+        alt Success
+            API-->>Sender: 200 OK
+        else Timeout / Drop
+            Sender->>DB: INSERT into offline_queue
+        end
+        
+        opt When queue is empty & online
+            Sender->>DB: SELECT * FROM offline_queue
+            DB-->>Sender: Pending Payloads
+            Sender->>API: POST /api/detections
+            API-->>Sender: 200 OK
+            Sender->>DB: DELETE FROM offline_queue
+        end
+    end
+```
+
+### 8. Deployment Architecture Diagram
+```mermaid
+graph TD
+    subgraph "Field Deployment"
+        PI[Raspberry Pi 5]
+        CAM[Pi Cam Module 3]
+        PI -- Systemd --> SERVICE[predatoralert.service]
+        CAM -- MIPI --> PI
+    end
+
+    subgraph "Cloud Hosting"
+        RENDER[Render.com Node Backend]
+        FB[Firebase Services]
+    end
+
+    subgraph "App Stores"
+        PLAY[Google Play Store]
+        APPSTORE[Apple App Store]
+    end
+
+    PI -- 4G/LTE/WiFi --> RENDER
+    RENDER --> FB
+    PLAY -. Distribution .-> MOBILE[User Devices]
+    APPSTORE -. Distribution .-> MOBILE
 ```
 
 ---
 
-## 6. 🛠️ Technology Stack
+# 📖 DETAILED TECHNICAL DOCUMENTATION
 
-| Category | Technologies Used |
-|----------|------------------|
-| **AI / Machine Learning** | YOLO (PyTorch/ONNX), Ultralytics, OpenCV |
-| **Edge Hardware** | Raspberry Pi 5 (8GB), Pi Camera Module 3 |
-| **Programming Language** | Python 3.12 |
-| **Web Server / Streaming**| Flask, MJPEG protocol |
-| **Integrations** | Twilio API, Custom REST API |
-| **Database (Edge)** | SQLite3 (Offline Caching) |
-| **System Tools** | Systemd, journald |
+## 💻 Technology Stack
 
----
+### Hardware & Embedded Layer
+| Component | Specification |
+|-----------|---------------|
+| **Core Compute** | Raspberry Pi 5 (8GB RAM) |
+| **Camera** | Raspberry Pi Camera Module 3 (Sony IMX708, PDAF) |
+| **OS** | Raspberry Pi OS (64-bit Debian) |
+| **Libraries** | Python 3.12, OpenCV, Picamera2 |
 
-## 7. 📂 Folder Structure
+### AI / ML Stack
+| Component | Description |
+|-----------|-------------|
+| **Model** | YOLOv8 / YOLOv10 (Custom Trained) |
+| **Export Format** | ONNX (Open Neural Network Exchange) |
+| **Engine** | Ultralytics, ONNXRuntime |
+| **Classes** | Tiger, Elephant, Bear, Fox, Boar (Predators), Cows, Sheep (Safe) |
 
-```text
-PredatorAlertor/
-│
-├── models/                    # Holds .pt or .onnx YOLO models (Not tracked by Git)
-├── logs/                      # Runtime system logs
-├── linkedin_images/           # Generated screenshots and logos
-├── flutter_app/               # Flutter cross-platform mobile application
-│
-├── main.py                    # Application Entry Point & Flask Server
-├── camera.py                  # Picamera2 / OpenCV hardware wrapper
-├── detector.py                # YOLO Inference Engine
-├── classifier.py              # Predator risk classification logic
-├── api_client.py              # HTTP REST client with SQLite offline sync
-├── sms_notifier.py            # Twilio SMS/Voice integration
-├── config.py                  # Environment variable configuration
-├── logger.py                  # Structured logging to console and file
-│
-├── test_detection.py          # Script to test static images
-├── verify_local_model.py      # Script to verify YOLO initialization
-├── generate_images.py         # Utility to generate diagram/screenshots
-│
-├── .env.example               # Template for environment secrets
-├── requirements.txt           # Python package dependencies
-├── predatoralert.service      # Systemd daemon configuration
-├── TECHNICAL_DOCUMENTATION.md # Detailed architecture and API specs
-└── README.md                  # This file
-```
+### Mobile App (Flutter)
+| Component | Description |
+|-----------|-------------|
+| **Framework** | Flutter (Dart) |
+| **State Management** | Riverpod |
+| **Backend/Auth** | Firebase Auth, Google Sign-In |
+| **Database** | Cloud Firestore |
+| **Notifications** | Firebase Cloud Messaging (FCM) + `flutter_local_notifications` |
+| **UI/UX** | `shimmer`, `cached_network_image`, `fl_chart` (Analytics) |
 
 ---
 
-## 8. ⚙️ Installation Guide
+## 🛠️ Raspberry Pi Module Explanation
 
-### Prerequisites
-- Raspberry Pi 5 with Pi OS (64-bit)
-- Python 3.10+
-- Pi Camera Module connected and enabled via `raspi-config`.
+The edge code resides in the root directory and is highly modularized:
+- **`main.py`**: The application controller. Initializes all modules, runs the main 2-second detection loop, and starts the Flask background thread for the `http://<PI_IP>:5000/video_feed` MJPEG stream.
+- **`camera.py`**: A robust wrapper that utilizes a **double-buffering** technique. A background daemon thread constantly fetches frames to a lock-protected variable, ensuring the main AI loop never blocks waiting for the camera I/O.
+- **`classifier.py`**: Maps raw YOLO strings (e.g., `asian_elephant`) to normalized internal logic (`elephant`) and cross-references against `PREDATOR_ANIMALS` to assign a threat priority level (1 to 4).
+- **`api_client.py`**: The core networking module. Implements **Instant Threading** for predators (sending alerts immediately before encoding images) and a persistent **SQLite Database** for offline caching.
+- **`logger.py`**: Dual-output structured logging. Writes JSON-like formatted logs to `/home/pi/logs/` and stdout for `journald` compatibility.
 
-### Step-by-Step Setup
+## 🧠 AI/ML Documentation
 
-1. **Clone the Repository**
+The system relies on a custom YOLO model tailored for edge hardware:
+- **ONNX Optimization**: The standard PyTorch `.pt` file is exported to `.onnx`. On ARM64 processors (like the Pi 5), `onnxruntime` heavily outperforms PyTorch natively, boosting FPS significantly.
+- **Inference Size**: Scaled down to `320x320` input size via `Config.INFERENCE_IMGSZ`. This reduces mathematical operations by 4x compared to `640x640`, making it perfect for 2-second interval thermal stability.
+- **Warmup Phase**: The `detector.initialize()` method runs a dummy black tensor through the model at startup to pre-compile the computational graph, preventing lag on the first real detection.
+
+## 📱 Flutter App Documentation
+
+Located in `flutter_app/`, built using **Clean Architecture** principles:
+- **`lib/core/`**: Houses routing, constants, and theme data (Dark mode implementation).
+- **`lib/data/`**: Repositories handling Firestore API calls and Authentication logic.
+- **`lib/presentation/`**: UI logic managed by Riverpod providers.
+  - **Dashboard**: Features an `fl_chart` graph showing detection trends over the week.
+  - **Alert Feed**: Real-time paginated list of incoming threats listening to Firestore snapshots.
+  - **Live Stream View**: An embedded web view connecting to the Pi's MJPEG endpoint.
+- **Audio/Vibration**: Critical alerts trigger bypass-silent-mode vibrations and klaxon sounds via the `audioplayers` package.
+
+---
+
+# 🚀 INSTALLATION & SETUP GUIDE
+
+## 1. Raspberry Pi Edge Setup
+
+1. **Clone & Environment**:
    ```bash
    git clone https://github.com/JOJI-25/PredatorAlertor.git
    cd PredatorAlertor
-   ```
-
-2. **Create a Virtual Environment**
-   ```bash
    python3 -m venv venv
    source venv/bin/activate
    ```
 
-3. **Install Dependencies**
+2. **Install Dependencies**:
    ```bash
-   # Note: OpenCV and NumPy might take time to build on the Pi
    pip install -r requirements.txt
-   
-   # Install ONNX runtime for optimized inference
-   pip install onnx onnxruntime
+   pip install onnx onnxruntime --break-system-packages
    ```
 
-4. **Environment Configuration**
+3. **Environment & Model Configuration**:
    ```bash
    cp .env.example .env
-   nano .env
+   mkdir models
    ```
-   *Fill in your Twilio credentials, Backend URL, and API keys.*
+   *Edit `.env` to add your Twilio Keys and Backend URL.* Place your `best.onnx` model inside the `models/` directory.
 
-5. **Model Setup**
-   Download your YOLO `best.onnx` or `best.pt` file and place it in the `models/` directory. Update the path in `.env`.
+4. **Install as Systemd Service**:
+   ```bash
+   sudo cp predatoralert.service /etc/systemd/system/
+   sudo systemctl daemon-reload
+   sudo systemctl enable predatoralert
+   sudo systemctl start predatoralert
+   ```
 
----
+## 2. Flutter App Setup
 
-## 9. 🚀 Usage Guide
-
-### Running the App Manually
-To start the edge detection application:
-```bash
-source venv/bin/activate
-python main.py
-```
-* The live camera feed will be accessible at `http://<YOUR_PI_IP>:5000`
-* Watch the console for structured log outputs.
-
-### Running as a Background Service
-To ensure the app survives reboots and crashes:
-```bash
-sudo cp predatoralert.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable predatoralert
-sudo systemctl start predatoralert
-```
-
-View live logs:
-```bash
-sudo journalctl -u predatoralert -f
-```
+1. **Install Flutter**: Ensure Flutter SDK > 3.16 is installed.
+2. **Navigate & Fetch**:
+   ```bash
+   cd flutter_app
+   flutter pub get
+   ```
+3. **Firebase Configuration**:
+   Place your generated `google-services.json` in `flutter_app/android/app/` and `GoogleService-Info.plist` in `flutter_app/ios/Runner/`.
+4. **Run Emulator**:
+   ```bash
+   flutter run
+   ```
 
 ---
 
-## 10. 🧠 Model/Algorithm Explanation
+# ⚙️ EXECUTION FLOW DOCUMENTATION
 
-The core detection engine is powered by **YOLO (You Only Look Once)**, specifically trained on a custom dataset of 5 primary classes (Tiger, Elephant, Wild Boar, Monkey, Fox). 
-
-**Why YOLO?** 
-YOLO is renowned for its speed, making it the industry standard for real-time edge processing. We utilize an **ONNX (Open Neural Network Exchange)** exported version of the model to leverage hardware acceleration on the ARM64 architecture of the Raspberry Pi 5, reducing inference time significantly compared to native PyTorch.
-
-**Inference Logic:**
-- Image size is scaled down to `320x320` or `640x640` (configurable) to balance FPS and accuracy.
-- Confidence Threshold is set to `0.65` to prevent false positives.
-
----
-
-## 11. 🔧 Hardware Integration
-
-- **Raspberry Pi 5 (8GB):** Acts as the primary compute node. The 8GB RAM is crucial for holding the OS, the Python environment, and the YOLO model weights in memory without swapping.
-- **Pi Camera Module 3:** Connected via the MIPI CSI interface. We use `Picamera2` to fetch raw BGR888 frames directly, bypassing slow format conversions.
-- **Thermal Management:** Inference is throttled to run every 2 seconds (`DETECTION_INTERVAL_SECONDS`) to prevent the Pi 5 from thermal throttling.
+1. **Systemd Boot:** Raspberry Pi powers on; `predatoralert.service` launches `main.py`.
+2. **Warmup:** YOLO model loads to RAM; dummy inference warms up the graph. Camera double-buffer thread begins.
+3. **Detection Loop (Every 2s):** Main thread copies the latest frame from the buffer and passes it to `detector.py`.
+4. **Logic Filter:** Detections > 0.65 confidence are passed to `classifier.py`.
+5. **Predator Match:** A tiger is detected. `api_client` instantly spawns a thread sending a text-only HTTP POST, while `sms_notifier` spawns threads for Twilio SMS and Voice Calls.
+6. **Image Encoding:** The BGR frame is encoded to JPEG, converted to Base64, and POSTed to the backend.
+7. **Cloud Routing:** Render/Node backend receives the payload, saves the Base64 image to Google Cloud Storage/Firestore, and triggers an FCM Push.
+8. **Mobile Alert:** The Flutter app receives the FCM payload in the background, triggers a local notification with sound, and updates the Live Dashboard UI via Riverpod stream listening.
 
 ---
 
-## 12. 🔌 API Documentation
+# 🏎️ PERFORMANCE & OPTIMIZATION
 
-The edge device communicates with the backend via REST.
-
-**Endpoint:** `POST /api/detections`
-
-**Headers:**
-```json
-{
-  "Authorization": "Bearer <YOUR_API_KEY>",
-  "Content-Type": "application/json"
-}
-```
-
-**Payload Example:**
-```json
-{
-  "device_id": "pi5-edge-001",
-  "animal": "tiger",
-  "confidence": 0.942,
-  "timestamp": "2026-05-17T10:00:00Z",
-  "image_base64": "/9j/4AAQSkZJRgABAQ..." // Omitted for instant fast-alerts
-}
-```
+- **Thermal Throttling Prevention:** Inference is capped at 0.5 FPS (every 2 seconds). This ensures the Pi 5's Broadcom CPU never hits 85°C, eliminating the need for active cooling in deep-forest deployments.
+- **Memory Footprint:** The Pi service restricts memory to `MemoryMax=2G` via systemd to ensure OS stability.
+- **Instant Alerting:** By separating the JSON text payload from the Base64 image payload, the alert network packet is reduced to < 1KB, ensuring sub-second delivery even on poor 2G/3G rural cellular networks.
 
 ---
 
-## 13. 🛡️ Security Considerations
+# 🔒 SECURITY DOCUMENTATION
 
-- **Edge Security:** The application runs under a restricted `pi` user with `NoNewPrivileges=true` defined in the systemd service.
-- **Network Security:** API communication relies on Bearer Token authentication over HTTPS (when deployed to production).
-- **Data Privacy:** Images are only transmitted if a predator is detected. Safe animal detections (like cows) transmit metadata only.
-
----
-
-## 14. ⚡ Performance Optimization
-
-1. **Double-Buffering:** The camera thread reads frames into a pre-allocated memory buffer. The main thread references this buffer rather than copying the array, saving massive CPU overhead.
-2. **ONNX Export:** Translating the PyTorch model to ONNX allows the Pi to execute inference much faster.
-3. **Throttled Streaming:** The Flask MJPEG stream is intentionally throttled to 10 FPS to reserve CPU cycles for the YOLO inference engine.
-4. **Instant-Thread API:** Network latency doesn't block the camera loop. Heavy base64 image uploads are passed to a background thread.
+- **Edge Sandbox:** The Pi service runs under a restricted `pi` user with `NoNewPrivileges=true`.
+- **API Authentication:** All edge-to-cloud traffic is secured via HTTPS and authenticates using a hardcoded `Bearer <API_KEY>`.
+- **Firebase Rules:** Firestore security rules ensure that mobile app users must be authenticated via Google OAuth to view or delete alerts.
 
 ---
 
-## 15. 🔮 Future Improvements
+# 🔮 FUTURE IMPROVEMENTS
 
-- [ ] **Hailo-8 AI Accelerator:** Integrate an M.2 Hailo-8 AI accelerator module via the PCIe slot for 30+ FPS inference.
-- [ ] **Night Vision:** Integrate a NoIR camera module with an IR floodlight for 24/7 monitoring.
-- [ ] **Solar Power:** Design an autonomous solar power and battery management system (BMS) for deep-forest deployment.
-- [ ] **LoRaWAN Integration:** Transmit lightweight alert payloads over LoRa for areas with zero cellular connectivity.
-
----
-
-## 16. 🐛 Troubleshooting
-
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| **Camera fails to initialize** | CSI cable loose or legacy stack enabled | Check cable. Ensure `libcamera` is enabled in `raspi-config`. |
-| **High CPU Usage / Overheating** | Inference running too fast | Increase `DETECTION_INTERVAL_SECONDS` in `.env`. Install an active cooler. |
-| **API Timeout Errors** | Poor Wi-Fi/Cellular | Check logs. The SQLite offline cache will store alerts, but verify network stability. |
+- [ ] **Hailo-8 AI Accelerator:** Transition from CPU inference to a PCIe-based Hailo-8 M.2 module to achieve 30+ FPS real-time tracking.
+- [ ] **Thermal/IR Integration:** Replace the standard Camera Module 3 with a FLIR thermal camera for pitch-black nocturnal monitoring.
+- [ ] **LoRaWAN Mesh:** Replace Wi-Fi/Cellular API calls with LoRaWAN packets for off-grid forest deployments with zero cellular connectivity.
+- [ ] **Federated Learning:** Allow the Pi to upload false positives via the app to retrain the central YOLO model autonomously.
 
 ---
 
-## 17. 🤝 Contributing Guide
-
-1. Fork the repository.
-2. Create your feature branch: `git checkout -b feature/NewFeature`
-3. Commit your changes: `git commit -m 'Add NewFeature'`
-4. Push to the branch: `git push origin feature/NewFeature`
-5. Open a Pull Request.
-
----
-
-## 18. 📜 License
-
-This project is licensed under the **MIT License**. See the LICENSE file for details.
-
----
-
-## 19. 🙌 Authors / Credits
-
-- **[Joji-25]** - Lead Engineer / Architect
-- Special thanks to Ultralytics for the YOLO architecture and Roboflow for dataset management.
-
----
 <div align="center">
-  <i>"Protecting wildlife and human life through intelligent edge computing."</i>
+  <i>Architected by Joji-25</i><br>
+  <i>Protecting wildlife and human life through intelligent edge computing.</i>
 </div>
