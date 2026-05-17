@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="linkedin_images/action_shot_tiger.jpg" alt="PredatorAlert Logo" width="100%">
+  <img src="linkedin_images/action_shot_bear.jpg" alt="PredatorAlert Logo" width="100%">
   <h1>🚨 PredatorAlert Edge AI</h1>
   <p><strong>Real-Time Wildlife Intrusion Detection System for Edge Devices</strong></p>
   
