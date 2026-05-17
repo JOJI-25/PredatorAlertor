@@ -140,17 +140,17 @@ graph TD
 ### 5. Detection Pipeline Flowchart
 ```mermaid
 flowchart TD
-    Start([main.py Loop]) --> Cap[camera.capture_frame()]
-    Cap --> Det[detector.detect()]
-    Det --> Valid{Conf > 0.65?}
-    Valid -- No --> Next([Wait 2s])
-    Valid -- Yes --> Class[classifier.classify_batch()]
-    Class --> Map[Map against PREDATOR_ANIMALS]
-    Map --> Risk{Is Predator?}
-    Risk -- Yes --> Red[Draw Red Box]
-    Risk -- No --> Green[Draw Green Box]
-    Red --> Fire[Spawn Instant Alert Thread]
-    Green --> Q[Enqueue to Background Worker]
+    Start(["main.py Loop"]) --> Cap["camera.capture_frame()"]
+    Cap --> Det["detector.detect()"]
+    Det --> Valid{"Conf > 0.65?"}
+    Valid -- No --> Next(["Wait 2s"])
+    Valid -- Yes --> Class["classifier.classify_batch()"]
+    Class --> Map["Map against PREDATOR_ANIMALS"]
+    Map --> Risk{"Is Predator?"}
+    Risk -- Yes --> Red["Draw Red Box"]
+    Risk -- No --> Green["Draw Green Box"]
+    Red --> Fire["Spawn Instant Alert Thread"]
+    Green --> Q["Enqueue to Background Worker"]
     Fire --> Next
     Q --> Next
 ```
